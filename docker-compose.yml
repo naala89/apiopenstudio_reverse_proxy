@@ -1,0 +1,77 @@
+version: '3'
+
+services:
+
+  traefik:
+    image: "traefik:${TRAEFIK_IMAGE}"
+    container_name: "${PROJECT_NAME}-traefik"
+    command:
+      - --entrypoints.web.address=:80
+      - --entrypoints.websecure.address=:443
+      - --providers.docker=true
+      - --providers.file.directory=/etc/traefik/dynamic_conf
+    ports:
+      - 80:80
+      - 443:443
+      - 8080:8080
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./config/static.yml:/etc/traefik/traefik.yml:ro
+      - ./config/dynamic.yml:/etc/traefik/dynamic.yml:ro
+      - "${SSL_CERT_DIR}:/etc/certs:ro"
+    networks:
+      - api_network
+
+  api:
+    image: "naala89/apiopenstudio:${API_IMAGE_TAG}"
+    container_name: "${PROJECT_NAME}-api"
+    platform: linux/amd64
+    volumes:
+      - ./settings.api.yml:/var/www/html/settings.yml
+      - ./config/api.conf:/etc/nginx/sites-enabled/default:ro
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=api_network"
+      - "traefik.http.routers.api.rule=Host(`${API_URL}`)"
+      - "traefik.http.routers.api.tls=true"
+    networks:
+      - api_network
+
+  db:
+    image: "mariadb:${DB_IMAGE_TAG}"
+    container_name: "${PROJECT_NAME}-db"
+    networks:
+      - api_network
+    volumes:
+      - type: volume
+        source: dbdata
+        target: /var/lib/mysql
+        volume:
+          nocopy: true
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+
+  admin:
+    image: "naala89/apiopenstudio_admin:${ADMIN_IMAGE_TAG}"
+    container_name: "${PROJECT_NAME}-admin"
+    networks:
+      - api_network
+    platform: linux/amd64
+    volumes:
+      - ./settings.admin.yml:/var/www/html/settings.yml
+      - ./config/admin.conf:/etc/nginx/sites-enabled/default:ro
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=api_network"
+      - "traefik.http.routers.admin.rule=Host(`${ADMIN_URL}`)"
+      - "traefik.http.routers.admin.tls=true"
+
+volumes:
+  dbdata:
+
+networks:
+  api_network:
+    external: true
