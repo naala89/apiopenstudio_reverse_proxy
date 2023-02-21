@@ -1,92 +1,223 @@
-# Api Open Studio Reverse Proxy
+ApiOpenStudio Reverse Proxy
+=============================
 
+This docker setup is designed for users of ApiOpenStudio on a local machine or
+a single server, and allows full `https` traffic, and is suitable for
+small-medium projects in production. It removes the need to set up separate
+servers for admin and api. It uses the [ApiOpenStudio][api_docker_image],
+[ApiOpenStudio Admin][admin_docker_image], [Traefik][traefik_docker_image] and
+[MariaDB][mariadb_docker_image] docker images.
 
+Installation
+============
 
-## Getting started
+Clone this repository:
 
-To make it easy for you to get started with GitLab, here's a list of recommended next steps.
-
-Already a pro? Just edit this README.md and make it your own. Want to make it easy? [Use the template at the bottom](#editing-this-readme)!
-
-## Add your files
-
-- [ ] [Create](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#create-a-file) or [upload](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#upload-a-file) files
-- [ ] [Add files using the command line](https://docs.gitlab.com/ee/gitlab-basics/add-file.html#add-a-file-using-the-command-line) or push an existing Git repository with the following command:
-
-```
-cd existing_repo
-git remote add origin https://gitlab.com/apiopenstudio/api-open-studio-reverse_proxy.git
-git branch -M main
-git push -uf origin main
+```bash
+git clone git@gitlab.com:apiopenstudio/apiopenstudio_reverse_proxy.git
 ```
 
-## Integrate with your tools
+SSL Keys
+--------
 
-- [ ] [Set up project integrations](https://gitlab.com/apiopenstudio/api-open-studio-reverse_proxy/-/settings/integrations)
+### Local environment
 
-## Collaborate with your team
+Install `mkcert`, fir documentation, see [mkcert][mkcert].
 
-- [ ] [Invite team members and collaborators](https://docs.gitlab.com/ee/user/project/members/)
-- [ ] [Create a new merge request](https://docs.gitlab.com/ee/user/project/merge_requests/creating_merge_requests.html)
-- [ ] [Automatically close issues from merge requests](https://docs.gitlab.com/ee/user/project/issues/managing_issues.html#closing-issues-automatically)
-- [ ] [Enable merge request approvals](https://docs.gitlab.com/ee/user/project/merge_requests/approvals/)
-- [ ] [Automatically merge when pipeline succeeds](https://docs.gitlab.com/ee/user/project/merge_requests/merge_when_pipeline_succeeds.html)
+Generate new keys using the following bash command:
 
-## Test and Deploy
+```bash
+mkcert -cert-file certs/localhost.crt -key-file certs/localhost.key "*.docker.localhost"
+cp "$(mkcert -CAROOT)/rootCA.pem" certs/ca.crt
+```
 
-Use the built-in continuous integration in GitLab.
+See [mkcert guide][mkcert_guide]
 
-- [ ] [Get started with GitLab CI/CD](https://docs.gitlab.com/ee/ci/quick_start/index.html)
-- [ ] [Analyze your code for known vulnerabilities with Static Application Security Testing(SAST)](https://docs.gitlab.com/ee/user/application_security/sast/)
-- [ ] [Deploy to Kubernetes, Amazon EC2, or Amazon ECS using Auto Deploy](https://docs.gitlab.com/ee/topics/autodevops/requirements.html)
-- [ ] [Use pull-based deployments for improved Kubernetes management](https://docs.gitlab.com/ee/user/clusters/agent/)
-- [ ] [Set up protected environments](https://docs.gitlab.com/ee/ci/environments/protected_environments.html)
+### Production environment
 
-***
+Save your certificate key and certificate somewhere safe on your server, and
+update your `.env` to point to the file locations, e.g.:
 
-# Editing this README
+```bash
+SSL_CERT_DIR=/path/to/cert/
+```
 
-When you're ready to make this README your own, just edit this file and use the handy template below (or feel free to structure it however you want - this is just a starting point!). Thank you to [makeareadme.com](https://www.makeareadme.com/) for this template.
+If need be, update `config/dynamic.yml` to contain the correct filenames for your certs.
 
-## Suggestions for a good README
-Every project is different, so consider which of these sections apply to yours. The sections used in the template are suggestions for most open source projects. Also keep in mind that while a README can be too long and detailed, too long is better than too short. If you think your README is too long, consider utilizing another form of documentation rather than cutting out information.
+Configuration
+-------------
 
-## Name
-Choose a self-explaining name for your project.
+Copy the example config files:
 
-## Description
-Let people know what your project can do specifically. Provide context and add a link to any reference visitors might be unfamiliar with. A list of Features or a Background subsection can also be added here. If there are alternatives to your project, this is a good place to list differentiating factors.
+```bash
+cp example.env .env
+cp example.settings.api.yml settings.api.yml
+cp example.settings.admin.yml settings.admin.yml
+sudo chmod 600 .env settings.api.yml settings.admin.yml
+```
 
-## Badges
-On some READMEs, you may see small images that convey metadata, such as whether or not all the tests are passing for the project. You can use Shields to add some to your README. Many services also have instructions for adding a badge.
+### .env
 
-## Visuals
-Depending on what you are making, it can be a good idea to include screenshots or even a video (you'll frequently see GIFs rather than actual videos). Tools like ttygif can help, but check out Asciinema for a more sophisticated method.
+Update the values in the Database section:
 
-## Installation
-Within a particular ecosystem, there may be a common way of installing things, such as using Yarn, NuGet, or Homebrew. However, consider the possibility that whoever is reading your README is a novice and would like more guidance. Listing specific steps helps remove ambiguity and gets people to using your project as quickly as possible. If it only runs in a specific context like a particular programming language version or operating system or has dependencies that have to be installed manually, also add a Requirements subsection.
+- `MYSQL_ROOT_PASSWORD`
+- `MYSQL_DATABASE`
+- `MYSQL_USER`
+- `MYSQL_PASSWORD`
 
-## Usage
-Use examples liberally, and show the expected output if you can. It's helpful to have inline the smallest example of usage that you can demonstrate, while providing links to more sophisticated examples if they are too long to reasonably include in the README.
+Update the values in the URLs:
 
-## Support
-Tell people where they can go to for help. It can be any combination of an issue tracker, a chat room, an email address, etc.
+- `API_URL` (without the `https://` prefix)
+- `ADMIN_URL` (without the `https://` prefix)
 
-## Roadmap
-If you have ideas for releases in the future, it is a good idea to list them in the README.
+### settings.api.yml
 
-## Contributing
-State if you are open to contributions and what your requirements are for accepting them.
+Update the following values:
 
-For people who want to make changes to your project, it's helpful to have some documentation on how to get started. Perhaps there is a script that they should run or some environment variables that they need to set. Make these steps explicit. These instructions could also be useful to your future self.
+- `db.root_password` (same value as `MYSQL_ROOT_PASSWORD` in `.env`)
+- `db.username` (same value as `MYSQL_USER` in `.env`)
+- `db.password` (same value as `MYSQL_PASSWORD` in `.env`)
+- `api.url` (same value as `API_URL` in `.env`)
+- `api.jwt_issuer` (same as `api.url`)
+- `api.jwt_permitted_for` (same as `api.url`)
 
-You can also document commands to lint the code or run tests. These steps help to ensure high code quality and reduce the likelihood that the changes inadvertently break something. Having instructions for running tests is especially helpful if it requires external setup, such as starting a Selenium server for testing in a browser.
+### settings.admin.yml
 
-## Authors and acknowledgment
-Show your appreciation to those who have contributed to the project.
+Update the following values:
 
-## License
-For open source projects, say how it is licensed.
+- `admin.url` (same value as `ADMIN_URL` in `.env`)
+- `admin.api_url` (same value as the container name for the API container)
 
-## Project status
-If you have run out of energy or time for your project, put a note at the top of the README saying that development has slowed down or stopped completely. Someone may choose to fork your project or volunteer to step in as a maintainer or owner, allowing your project to keep going. You can also make an explicit request for maintainers.
+Spin up the docker containers
+=============================
+
+Create the docker network and start the images
+
+```bash
+docker network create api_network
+docker compose up -d
+```
+
+Install the systems
+===================
+
+Install ApiOpenStudio Core
+
+```bash
+docker exec -it apiopenstudio-api bash
+./install.sh
+exit
+```
+
+Install ApiOpenStudio Admin
+
+```bash
+docker exec -it apiopenstudio-admin bash
+./install.sh
+exit
+```
+
+Useful URLs
+===========
+
+Traefik admin page is available on `<API_URL>:8080`
+
+Support
+=======
+
+For any bugs or issues found, raise a ticket at the [respository issue tracker][bug_tracker]
+
+Contributing
+============
+
+This project is open to contributions.
+
+To contribute:
+
+1. Create a ticket, or work on an existing ticket.
+1. Fork the main repository into your own repo.
+1. Checkout the fork.
+1. Set a new `upstream` remote, pointing to the main repository.
+1. Create a feature branch off `develop`.
+1. Make updates.
+1. Push the changes to your `origin` (fork).
+1. Create a merge request to the `upstream/develop` branch.
+
+Clone your fork
+
+```bash
+git clone git@gitlab.com:<username>/<repo_name>.git
+```
+
+Set upstream
+
+```bash
+git remote add upstream https://gitlab.com/apiopenstudio/apiopenstudio_reverse_proxy
+git fetch upstream
+```
+
+Checkout your feature branch
+
+```bash
+git checkout develop
+git checkout -b feature/<ticket_id>-ticket-description
+git push origin feature/<ticket_id>-ticket-description
+```
+
+Code and push changes. After you've finished creating and testing your changes:
+
+```bash
+git commit -a -m "#<ticket_number> - short description."
+git push origin feature/<ticket_id>-ticket-description
+```
+
+Create a merge request. In your repository page in a browser:
+
+* Click on `Merge requests` in the LHS menu.
+* Click on `New merge request` button at the top of the page.
+* Ensure the `Source branch` is the feature branch on your repository.
+* Ensure the target branch is `apiopenstudio/apiopenstudio_docker_dev`
+  `develop` branch.
+* Click on `Compare branches and continue`.
+
+Follow the rest of the page prompts. If your merge request is accepted, it will
+be merged. If there are any updates required, you will be notified through the
+issue ticket.
+
+Authors and acknowledgment
+==========================
+
+Many thanks to the original developer and Traefik:
+
+* [laughing_man77][laughing_man77]
+* [Traefik][traefik_docs]
+
+License
+=======
+
+This is available under MIT License.
+
+Links
+=====
+
+* [Traefik documentation][traefik_docs]
+* [mkcert guide][mkcert_guide]
+* [mkcert documentation][mkcert]
+
+[api_docker_image]: https://hub.docker.com/r/naala89/apiopenstudio
+
+[admin_docker_image]: https://hub.docker.com/r/naala89/apiopenstudio_admin
+
+[mariadb_docker_image]: https://hub.docker.com/_/mariadb
+
+[traefik_docker_image]: https://hub.docker.com/_/traefik
+
+[traefik_docs]: https://doc.traefik.io/traefik/
+
+[mkcert_guide]: https://github.com/FiloSottile/mkcert
+
+[mkcert]: https://github.com/FiloSottile/mkcert
+
+[bug_tracker]: https://gitlab.com/apiopenstudio/apiopenstudio_reverse_proxy/-/issues
+
+[laughing_man77]: https://gitlab.com/laughing_man77

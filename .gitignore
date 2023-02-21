@@ -1,0 +1,5 @@
+.env
+settings.*
+conf/
+.idea
+certs/*

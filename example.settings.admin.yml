@@ -1,0 +1,61 @@
+# Example settings file.
+#
+# @package   ApiOpenStudioAdmin
+# @license   This Source Code Form is subject to the terms of the ApiOpenStudio Public License.
+#            If a copy of the MPL was not distributed with this file,
+#            You can obtain one at https://www.apiopenstudio.com/license/.
+# @author    john89 (https://gitlab.com/john89)
+# @copyright 2020-2030 Naala Pty Ltd
+# @link      https://www.apiopenstudio.com
+
+debug:
+  formatters:
+    default:
+      format: null
+      date_format: null
+      allow_inline_line_breaks: false
+      ignore_empty_context_and_extra: true
+  handlers:
+    api_log_file:
+      class: StreamHandler
+      formatter: default
+      level: ERROR
+      stream: /var/log/nginx/api.log
+    db_log_file:
+      class: StreamHandler
+      formatter: default
+      level: ERROR
+      stream: /var/log/nginx/db.log
+    stdout:
+      class: StreamHandler
+      formatter: default
+      level: ERROR
+      stream: php://stdout
+  loggers:
+    admin:
+      handlers:
+        - admin_file_handler
+        - stdout
+
+admin:
+  url: "admin.docker.localhost"
+  api_url: "apiopenstudio-api"
+  protocols:
+    - https
+  core_account: apiopenstudio
+  core_application: core
+  base_path: "/var/www/html/"
+  dir_tmp: "/tmp/"
+  dir_public: "public/"
+  pagination_step: 20
+  templates: "includes/templates/"
+  slim:
+    displayErrorDetails: true
+    determineRouteBeforeAppMiddleware: true
+
+twig:
+  options:
+    cache_enabled: true
+    cache_path: "twig_cache/"
+    debug: false
+  template_path: "includes/templates/"
