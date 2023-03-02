@@ -35,14 +35,24 @@ See [mkcert guide][mkcert_guide]
 
 ### Production environment
 
-Save your certificate key and certificate somewhere safe on your server, and
-update your `.env` to point to the file locations, e.g.:
+#### .env
+Save your certificate key and certificate somewhere safe on your server, and update your `.env` to point to the file locations, e.g.:
 
 ```bash
 SSL_CERT_DIR=/path/to/cert/
 ```
 
-If need be, update `config/dynamic.yml` to contain the correct filenames for your certs.
+#### config/dynamic.yml
+
+Update the following entries to point to the correct domains:
+
+* `http.routers.traefik.tls.domains.*.main`
+* `http.routers.traefik.tls.domains.*.sans`
+
+Update the following entries to point to the correct filenames:
+
+* `tls.certificates.*.certFile`
+* `tls.certificates.*.keyFile`
 
 Configuration
 -------------
