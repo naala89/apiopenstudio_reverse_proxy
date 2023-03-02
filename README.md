@@ -96,7 +96,6 @@ Update the following values:
 Update the following values:
 
 - `admin.url` (same value as `ADMIN_URL` in `.env`)
-- `admin.api_url` (same value as the container name for the API container)
 
 Spin up the docker containers
 =============================
