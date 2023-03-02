@@ -26,8 +26,9 @@ services:
     image: "naala89/apiopenstudio:${API_IMAGE_TAG}"
     container_name: "${PROJECT_NAME}-api"
     platform: linux/amd64
+    user: "root:www-data"
     volumes:
-      - ./settings.api.yml:/var/www/html/settings.yml
+      - ./settings.api.yml:/var/www/html/settings.yml:ro
       - ./config/api.conf:/etc/nginx/sites-enabled/default:ro
     labels:
       - "traefik.enable=true"
@@ -60,8 +61,9 @@ services:
     networks:
       - api_network
     platform: linux/amd64
+    user: "root:www-data"
     volumes:
-      - ./settings.admin.yml:/var/www/html/settings.yml
+      - ./settings.admin.yml:/var/www/html/settings.yml:ro
       - ./config/admin.conf:/etc/nginx/sites-enabled/default:ro
     labels:
       - "traefik.enable=true"
