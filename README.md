@@ -72,6 +72,7 @@ cp example.env .env
 cp example.settings.api.yml settings.api.yml
 cp example.settings.admin.yml settings.admin.yml
 sudo chmod 660 .env settings.api.yml settings.admin.yml
+sudo chgrp 33 settings.api.yml settings.admin.yml
 ```
 
 ### .env
