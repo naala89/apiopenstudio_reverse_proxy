@@ -1,12 +1,11 @@
 ApiOpenStudio Reverse Proxy
 =============================
 
-This docker setup is designed for users of ApiOpenStudio on a local machine or
-a single server, and allows full `https` traffic, and is suitable for
-small-medium projects in production. It removes the need to set up separate
-servers for admin and api. It uses the [ApiOpenStudio][api_docker_image],
-[ApiOpenStudio Admin][admin_docker_image], [Traefik][traefik_docker_image] and
-[MariaDB][mariadb_docker_image] docker images.
+This docker setup is designed for users of ApiOpenStudio on a local machine or a single server, and allows full `https`
+traffic through a [Traefik][traefik_docs] reverse proxy for Core and Admin. It is suitable for local development and
+small-medium projects in production. It removes the need to deploy Admin and the Admin GUI on separate servers. It uses
+the [ApiOpenStudio][api_docker_image], [ApiOpenStudio Admin][admin_docker_image], [Traefik][traefik_docker_image]
+and [MariaDB][mariadb_docker_image] docker images.
 
 Installation
 ============
@@ -22,13 +21,20 @@ SSL Keys
 
 ### Local environment
 
-Install `mkcert`, fir documentation, see [mkcert][mkcert].
+Install `mkcert`, for documentation, see [mkcert][mkcert].
 
-Generate new keys using the following bash command:
+Generate new keys using the following bash commands:
 
 ```bash
+cd apiopenstudio_reverse_proxy
 mkcert -cert-file certs/localhost.crt -key-file certs/localhost.key "*.docker.localhost"
 cp "$(mkcert -CAROOT)/rootCA.pem" certs/ca.crt
+```
+
+Add the following to your `/etc/hosts` file:
+
+```bash
+127.0.0.1 docker.localhost
 ```
 
 See [mkcert guide][mkcert_guide]
@@ -36,10 +42,12 @@ See [mkcert guide][mkcert_guide]
 ### Production environment
 
 #### .env
-Save your certificate key and certificate somewhere safe on your server, and update your `.env` to point to the file locations, e.g.:
+
+Save your certificate key and certificate somewhere safe on your server, and update your `.env` to point to the
+directory containing the certificates, e.g.:
 
 ```bash
-SSL_CERT_DIR=/path/to/cert/
+SSL_CERT_DIR=/path/to/cert/dir
 ```
 
 #### config/dynamic.yml
@@ -49,7 +57,7 @@ Update the following entries to point to the correct domains:
 * `http.routers.traefik.tls.domains.*.main`
 * `http.routers.traefik.tls.domains.*.sans`
 
-Update the following entries to point to the correct filenames:
+Update the following entries to point to the correct filenames (the path to the files should remain `/etc/certs/`):
 
 * `tls.certificates.*.certFile`
 * `tls.certificates.*.keyFile`
@@ -63,7 +71,7 @@ Copy the example config files:
 cp example.env .env
 cp example.settings.api.yml settings.api.yml
 cp example.settings.admin.yml settings.admin.yml
-sudo chmod 600 .env settings.api.yml settings.admin.yml
+sudo chmod 660 .env settings.api.yml settings.admin.yml
 ```
 
 ### .env
@@ -79,6 +87,11 @@ Update the values in the URLs:
 
 - `API_URL` (without the `https://` prefix)
 - `ADMIN_URL` (without the `https://` prefix)
+
+Ensure that you have the correct image tags in:
+
+- `API_IMAGE_TAG`
+- `ADMIN_IMAGE_TAG`
 
 ### settings.api.yml
 
@@ -110,15 +123,15 @@ docker compose up -d
 Install the systems
 ===================
 
-Install ApiOpenStudio Core
+### Install ApiOpenStudio Core
 
 ```bash
 docker exec -it apiopenstudio-api bash
 ./install.sh
 exit
-```
+````
 
-Install ApiOpenStudio Admin
+### Install ApiOpenStudio Admin
 
 ```bash
 docker exec -it apiopenstudio-admin bash
@@ -134,7 +147,7 @@ Traefik admin page is available on `<API_URL>:8080`
 Support
 =======
 
-For any bugs or issues found, raise a ticket at the [respository issue tracker][bug_tracker]
+For any bugs or issues found, raise a ticket at the [repository issue tracker][bug_tracker]
 
 Contributing
 ============
