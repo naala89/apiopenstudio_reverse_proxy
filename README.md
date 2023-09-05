@@ -10,10 +10,16 @@ and [MariaDB][mariadb_docker_image] docker images.
 Installation
 ============
 
-Clone this repository:
+Clone this repository (GitLab):
 
 ```bash
 git clone git@gitlab.com:apiopenstudio/apiopenstudio_reverse_proxy.git
+```
+
+or (GitHub)
+
+```bash
+git clone git@github.com:naala89/apiopenstudio_reverse_proxy.gi
 ```
 
 SSL Keys
